@@ -24,10 +24,16 @@ use Fhaculty\Graph\Attribute\AttributeBagReference;
 
 class Graph implements DualAggregate, AttributeAware
 {
-    protected $verticesStorage = array();
+    /**
+     * @var \Fhaculty\Graph\Vertex[]
+     */
+    public $verticesStorage = array();
     protected $vertices;
 
-    protected $edgesStorage = array();
+    /**
+     * @var \Fhaculty\Graph\Vertex[]
+     */
+    public $edgesStorage = array();
     protected $edges;
 
     protected $attributes = array();

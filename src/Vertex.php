@@ -16,8 +16,8 @@ use Fhaculty\Graph\Attribute\AttributeBagReference;
 
 class Vertex implements EdgesAggregate, AttributeAware
 {
+    public $__id;
     private $id;
-
     /**
      * @var Edge[]
      */
@@ -49,8 +49,8 @@ class Vertex implements EdgesAggregate, AttributeAware
     /**
      * Create a new Vertex
      *
-     * @param Graph      $graph graph to be added to
-     * @param string|int $id    identifier used to uniquely identify this vertex in the graph
+     * @param Graph $graph graph to be added to
+     * @param string|int $id identifier used to uniquely identify this vertex in the graph
      * @see Graph::createVertex() to create new vertices
      */
     public function __construct(Graph $graph, $id)
@@ -59,7 +59,7 @@ class Vertex implements EdgesAggregate, AttributeAware
             throw new InvalidArgumentException('Vertex ID has to be of type integer or string');
         }
 
-        $this->id = $id;
+        $this->__id = $this->id = $id;
         $this->graph = $graph;
 
         $graph->addVertex($this);
@@ -91,9 +91,19 @@ class Vertex implements EdgesAggregate, AttributeAware
     }
 
     /**
+     * get group number
+     *
+     * @return int
+     */
+    public function getGroup()
+    {
+        return $this->group;
+    }
+
+    /**
      * set group number of this vertex
      *
-     * @param  int                      $group
+     * @param  int $group
      * @return Vertex                   $this (chainable)
      * @throws InvalidArgumentException if group is not numeric
      */
@@ -105,16 +115,6 @@ class Vertex implements EdgesAggregate, AttributeAware
         $this->group = $group;
 
         return $this;
-    }
-
-    /**
-     * get group number
-     *
-     * @return int
-     */
-    public function getGroup()
-    {
-        return $this->group;
     }
 
     /**
@@ -130,7 +130,7 @@ class Vertex implements EdgesAggregate, AttributeAware
     /**
      * create new directed edge from this start vertex to given target vertex
      *
-     * @param  Vertex                   $vertex target vertex
+     * @param  Vertex $vertex target vertex
      * @return EdgeDirected
      * @throws InvalidArgumentException
      * @uses Graph::addEdge()
@@ -143,7 +143,7 @@ class Vertex implements EdgesAggregate, AttributeAware
     /**
      * add new undirected (bidirectional) edge between this vertex and given vertex
      *
-     * @param  Vertex                   $vertex
+     * @param  Vertex $vertex
      * @return EdgeUndirected
      * @throws InvalidArgumentException
      * @uses Graph::addEdge()
@@ -156,7 +156,7 @@ class Vertex implements EdgesAggregate, AttributeAware
     /**
      * add the given edge to list of connected edges (MUST NOT be called manually)
      *
-     * @param  Edge                     $edge
+     * @param  Edge $edge
      * @return void
      * @private
      * @see self::createEdge() instead!
@@ -169,7 +169,7 @@ class Vertex implements EdgesAggregate, AttributeAware
     /**
      * remove the given edge from list of connected edges (MUST NOT be called manually)
      *
-     * @param  Edge                     $edge
+     * @param  Edge $edge
      * @return void
      * @throws InvalidArgumentException if given edge does not exist
      * @private
@@ -185,9 +185,21 @@ class Vertex implements EdgesAggregate, AttributeAware
     }
 
     /**
+     * check whether the given vertex has a direct edge to THIS vertex
+     *
+     * @param  Vertex $vertex
+     * @return boolean
+     * @uses Vertex::hasEdgeTo()
+     */
+    public function hasEdgeFrom(Vertex $vertex)
+    {
+        return $vertex->hasEdgeTo($this);
+    }
+
+    /**
      * check whether this vertex has a direct edge to given $vertex
      *
-     * @param  Vertex  $vertex
+     * @param  Vertex $vertex
      * @return boolean
      * @uses Edge::hasVertexTarget()
      */
@@ -201,18 +213,6 @@ class Vertex implements EdgesAggregate, AttributeAware
     }
 
     /**
-     * check whether the given vertex has a direct edge to THIS vertex
-     *
-     * @param  Vertex  $vertex
-     * @return boolean
-     * @uses Vertex::hasEdgeTo()
-     */
-    public function hasEdgeFrom(Vertex $vertex)
-    {
-        return $vertex->hasEdgeTo($this);
-    }
-
-    /**
      * get set of ALL Edges attached to this vertex
      *
      * @return Edges
@@ -223,31 +223,25 @@ class Vertex implements EdgesAggregate, AttributeAware
     }
 
     /**
-     * get set of all outgoing Edges attached to this vertex
+     * get set of ALL Edges attached to this vertex
      *
-     * @return Edges
+     * @return Edge[]
      */
-    public function getEdgesOut()
+    public function getEdgesCollection()
     {
-        $that = $this;
-
-        return $this->getEdges()->getEdgesMatch(function (Edge $edge) use ($that) {
-            return $edge->hasVertexStart($that);
-        });
+        return $this->edges;
     }
 
     /**
-     * get set of all ingoing Edges attached to this vertex
+     * get set of Edges FROM the given vertex TO this vertex
      *
+     * @param  Vertex $vertex
      * @return Edges
+     * @uses Vertex::getEdgesTo()
      */
-    public function getEdgesIn()
+    public function getEdgesFrom(Vertex $vertex)
     {
-        $that = $this;
-
-        return $this->getEdges()->getEdgesMatch(function (Edge $edge) use ($that) {
-            return $edge->hasVertexTarget($that);
-        });
+        return $vertex->getEdgesTo($this);
     }
 
     /**
@@ -262,20 +256,18 @@ class Vertex implements EdgesAggregate, AttributeAware
         $that = $this;
 
         return $this->getEdges()->getEdgesMatch(function (Edge $edge) use ($that, $vertex) {
+
             return $edge->isConnection($that, $vertex);
         });
     }
 
-    /**
-     * get set of Edges FROM the given vertex TO this vertex
-     *
-     * @param  Vertex $vertex
-     * @return Edges
-     * @uses Vertex::getEdgesTo()
-     */
-    public function getEdgesFrom(Vertex $vertex)
+    public function getEdgesToCollection(Vertex $vertex)
     {
-        return $vertex->getEdgesTo($this);
+        $that = $this;
+
+        return $this->getEdges()->getEdgesMatch(function (Edge $edge) use ($that, $vertex) {
+            return $edge->isConnection($that, $vertex);
+        });
     }
 
     /**
@@ -295,9 +287,9 @@ class Vertex implements EdgesAggregate, AttributeAware
         $ret = array();
         foreach ($this->edges as $edge) {
             if ($edge->hasVertexStart($this)) {
-                $ret []= $edge->getVertexToFrom($this);
+                $ret [] = $edge->getVertexToFrom($this);
             } else {
-                $ret []= $edge->getVertexFromTo($this);
+                $ret [] = $edge->getVertexFromTo($this);
             }
         }
 
@@ -319,10 +311,45 @@ class Vertex implements EdgesAggregate, AttributeAware
     {
         $ret = array();
         foreach ($this->getEdgesOut() as $edge) {
-            $ret []= $edge->getVertexToFrom($this);
+            $ret [] = $edge->getVertexToFrom($this);
         }
 
         return new Vertices($ret);
+    }
+
+
+    /**
+     * get set of all outgoing Edges attached to this vertex
+     *
+     * @return Edges
+     */
+    public function getEdgesOut()
+    {
+
+        $that = $this;
+
+        return $this->getEdges()->getEdgesMatch(function (Edge $edge) use ($that) {
+            return $edge->hasVertexStart($that);
+        });
+    }
+
+
+    /**
+     * get set of all outgoing Edges attached to this vertex
+     *
+     * @return Edge[]
+     */
+    public function getEdgesOutCollection()
+    {
+        $res = [];
+        foreach ($this->edges as $edge) {
+            /** @var \Fhaculty\Graph\Edge\Directed $edge */
+            if ($edge->__from === $this) {
+                $res[] = $edge;
+            }
+        }
+
+        return $res;
     }
 
     /**
@@ -340,10 +367,24 @@ class Vertex implements EdgesAggregate, AttributeAware
     {
         $ret = array();
         foreach ($this->getEdgesIn() as $edge) {
-            $ret []= $edge->getVertexFromTo($this);
+            $ret [] = $edge->getVertexFromTo($this);
         }
 
         return new Vertices($ret);
+    }
+
+    /**
+     * get set of all ingoing Edges attached to this vertex
+     *
+     * @return Edges
+     */
+    public function getEdgesIn()
+    {
+        $that = $this;
+
+        return $this->getEdges()->getEdgesMatch(function (Edge $edge) use ($that) {
+            return $edge->hasVertexTarget($that);
+        });
     }
 
     /**
@@ -358,18 +399,6 @@ class Vertex implements EdgesAggregate, AttributeAware
             $edge->destroy();
         }
         $this->graph->removeVertex($this);
-    }
-
-    /**
-     * do NOT allow cloning of objects
-     *
-     * @throws BadMethodCallException
-     */
-    private function __clone()
-    {
-        // @codeCoverageIgnoreStart
-        throw new BadMethodCallException();
-        // @codeCoverageIgnoreEnd
     }
 
     public function getAttribute($name, $default = null)
@@ -390,5 +419,17 @@ class Vertex implements EdgesAggregate, AttributeAware
     public function getAttributeBag()
     {
         return new AttributeBagReference($this->attributes);
+    }
+
+    /**
+     * do NOT allow cloning of objects
+     *
+     * @throws BadMethodCallException
+     */
+    private function __clone()
+    {
+        // @codeCoverageIgnoreStart
+        throw new BadMethodCallException();
+        // @codeCoverageIgnoreEnd
     }
 }

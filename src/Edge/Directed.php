@@ -10,13 +10,16 @@ use Fhaculty\Graph\Set\Edges;
 
 class Directed extends Base
 {
+    /** @var  Vertex */
+    public $__from;
+    /** @var  Vertex */
+    public $__to;
     /**
      * source/start vertex
      *
      * @var Vertex
      */
     private $from;
-
     /**
      * target/end vertex
      *
@@ -28,7 +31,7 @@ class Directed extends Base
      * create a new directed Edge from Vertex $from to Vertex $to
      *
      * @param Vertex $from start/source Vertex
-     * @param Vertex $to   end/target Vertex
+     * @param Vertex $to end/target Vertex
      * @see Vertex::createEdgeTo() to create directed edges
      * @see Vertex::createEdge() to create undirected edges
      */
@@ -38,8 +41,8 @@ class Directed extends Base
             throw new InvalidArgumentException('Vertices have to be within the same graph');
         }
 
-        $this->from = $from;
-        $this->to = $to;
+        $this->__from = $this->from = $from;
+        $this->__to = $this->to = $to;
 
         $from->getGraph()->addEdge($this);
         $from->addEdge($this);
