@@ -16,7 +16,7 @@ use Fhaculty\Graph\Attribute\AttributeBagReference;
 
 class Vertex implements EdgesAggregate, AttributeAware
 {
-    private $id;
+    protected $id;
 
     /**
      * @var Edge[]
