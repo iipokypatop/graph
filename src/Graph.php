@@ -25,9 +25,10 @@ use Fhaculty\Graph\Attribute\AttributeBagReference;
 class Graph implements DualAggregate, AttributeAware
 {
     /**
-     * @var \Fhaculty\Graph\Vertex[]
+     * @var \BaseGraph\Vertex[]
      */
     public $verticesStorage = array();
+    
     protected $vertices;
 
     /**

@@ -23,6 +23,12 @@ class Vertex implements EdgesAggregate, AttributeAware
      */
     private $edges = array();
 
+
+    /**
+     * @var Edge[]
+     */
+    public $__edges = array();
+
     /**
      * @var Graph
      */
@@ -164,6 +170,7 @@ class Vertex implements EdgesAggregate, AttributeAware
     public function addEdge(Edge $edge)
     {
         $this->edges[] = $edge;
+        $this->__edges[] = $edge;
     }
 
     /**
