@@ -189,6 +189,7 @@ class Vertex implements EdgesAggregate, AttributeAware
             throw new InvalidArgumentException('Given edge does NOT exist');
         }
         unset($this->edges[$id]);
+        unset($this->__edges[$id]);
     }
 
     /**
